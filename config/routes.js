@@ -1,7 +1,9 @@
 const axios = require('axios');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const db = require('../database/dbConfig.js');
+const secrets = require('./secrets.js');
 
 const { authenticate } = require('../auth/authenticate');
 
@@ -35,19 +37,40 @@ async function login(req, res) {
   try {
     const { username, password } = req.body;
 
-    // const user = await db('users')
-    //   .where({ username: username })
-    //   .first();
+    const user = await db('users')
+      .where({ username: username })
+      .first();
     
-    // if(user && bcrypt.compareSync(user.password, password)){ 
-    //   res.status(200).json({ message: "logged in" });
-    // } else {
-    // }
+    if(user && bcrypt.compareSync(password, user.password)){
+      
+      const token = generateToken(user);
+      console.log(token);
+      res.status(200).json({ 
+        message: "logged in",
+        token
+      });
+
+    } else {
+      res.status(401).json({ message: "Invalid credentials" });
+    }
 
   } catch (error) {
     res.status(500).json(error);
   }
 }
+
+function generateToken(user) {
+  const payload = {
+    subject: user.id,
+    username: user.username
+  };
+
+  const options = {
+    expiresIn: '1d',
+  };
+
+  return jwt.sign(payload, secrets.jwtSecret, options);
+};
 
 function getJokes(req, res) {
   const requestOptions = {
