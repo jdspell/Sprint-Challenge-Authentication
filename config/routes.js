@@ -3,9 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const db = require('../database/dbConfig.js');
-const secrets = require('./secrets.js');
 
-const { authenticate } = require('../auth/authenticate');
+const { authenticate, jwtKey } = require('../auth/authenticate');
 
 module.exports = server => {
   server.post('/api/register', register);
@@ -69,7 +68,7 @@ function generateToken(user) {
     expiresIn: '1d',
   };
 
-  return jwt.sign(payload, secrets.jwtSecret, options);
+  return jwt.sign(payload, jwtKey, options);
 };
 
 function getJokes(req, res) {
